@@ -43,7 +43,7 @@ async def get_products_links(request: URLsRequest):
         elif request.category == "vinyls":
             product_links = scrape_product_links(request.min, request.max, request.category[:-1])
         elif request.category == "tiles":
-            product_links = await scrape_product_links_build("https://www.build.com/shop-all-vanities/c113572?page=", request.min, request.max)
+            product_links = await scrape_product_links_build("https://www.build.com/tile/c116927?term=tiles", request.min, request.max)
         elif request.category == "sinks":
             product_links = await scrape_product_links_build("https://www.build.com/undermount-kitchen-sinks/c113813?page=", request.min, request.max)
         elif request.category == "faucets":
