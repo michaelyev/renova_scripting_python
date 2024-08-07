@@ -17,7 +17,6 @@ from utils.meta_description_generator import meta_description_generator
 from utils.filtering import extract_table_values
 from utils.meta_title_generator import meta_title_generator
 from utils.price_decreaser import price_decreaser
-from utils.rewriter import rewriter
 from utils.getProductColor import get_color_for_url
 from dotenv import load_dotenv
 load_dotenv()
@@ -100,10 +99,10 @@ def extract_table_data(driver, accordion_header_ids):
                 key = cells[0].text.strip()
                 value = cells[1].text.strip()
                 data[key] = value
-        return data
+        return data, True
     except Exception as e:
         print(f"Error extracting table data: {e}")
-        return {}
+        return {}, False
 
 def download_slider_image(url, filename):
     response = requests.get(url)
@@ -140,9 +139,26 @@ def get_all_product_details(url, category):
         about_section = driver.find_element(By.ID, 'full-product-details-about')
         details_content = about_section.text.strip().split("Learn more")[0].strip()
         accordion_header_ids = ['headingOne']
-        table_data = extract_table_data(driver, accordion_header_ids)
+        # table_data = extract_table_data(driver, accordion_header_ids)
+                
+        max_retries = 15
+        retries = 0
+        table_data = {}
+        success = False
+
+        while not success and retries < max_retries:
+            table_data, success = extract_table_data(driver, accordion_header_ids)
+            retries += 1
+            if not success:
+                print(f"Retrying... ({retries}/{max_retries})")
+                time.sleep(2)  # Optional: Add delay between retries
+        
+        if not success:
+            print("Failed to extract table data after maximum retries.")
+            return None
+        
         swatch_items = driver.find_elements(By.CLASS_NAME, 'swatch-item')
-        details_content = rewrite_description(details_content)
+        details_content = details_content
         price = product_details_container.find_element(By.CLASS_NAME, 'price-amount').text.strip()
         price = price_decreaser(f'${price}')
  
@@ -170,12 +186,7 @@ def get_all_product_details(url, category):
                 formatted_color_name = '-'.join(color_name.lower().split())
                 background_image_style = item.find_element(By.CLASS_NAME, 'swatchThumb').get_attribute('style')
                 background_image_url = background_image_style.split('url(')[-1].split(');')[0].strip('\'"')
-                print(f'{product_name.replace(" ", "-").lower()}-{table_data.get("Color", "").split(" ")[0].lower()}', 'jani1')
-                print(table_data.get("Color"), 'jan7')
-                print(table_data)
-                print(formatted_color_name, 'jani2')
                 if formatted_color_name == f'{product_name.replace(" ", "-").lower()}-{table_data.get("Color", "").split(" ")[0].lower()}':
-                    print(background_image_url)
                     image_path = download_image(background_image_url, slide_directory)
                     main_image = image_path
                 image_data.append({"model": formatted_color_name})
