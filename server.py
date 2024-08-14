@@ -11,6 +11,7 @@ from buildersinteriors_links_scraper import scrape_product_links_buiders_interio
 from llflooring_links_scraper import scrape_product_links_llflooring
 from get_llflooring_products_details import get_llflooring_products_data
 app = FastAPI()
+import uvicorn
 from fastapi.staticfiles import StaticFiles
 base_directory = "products"
 if not os.path.exists(base_directory):
@@ -92,4 +93,6 @@ async def get_products_details(request: URLRequest):
         return products_data
     except Exception as e:
         print(e)
-        # raise HTTPException(status_code=500, detail=str(e)) 
+        # raise HTTPException(status_code=500, detail=str(e))
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000) 
